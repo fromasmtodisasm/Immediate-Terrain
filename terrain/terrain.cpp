@@ -341,15 +341,19 @@ int main(int, char**)
 						break;
 #define offset 2
 					case SDL_SCANCODE_UP:
+					case SDL_SCANCODE_K:
 						gCamera.ProcessMouseMovement(0, offset);
 						break;
 					case SDL_SCANCODE_DOWN:
+					case SDL_SCANCODE_J:
 						gCamera.ProcessMouseMovement(0, -offset);
 						break;
 					case SDL_SCANCODE_LEFT:
+					case SDL_SCANCODE_H:
 						gCamera.ProcessMouseMovement(-offset, 0);
 						break;
 					case SDL_SCANCODE_RIGHT:
+					case SDL_SCANCODE_L:
 						gCamera.ProcessMouseMovement(offset, 0);
 						break;
 					default:
