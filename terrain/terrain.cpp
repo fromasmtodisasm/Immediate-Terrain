@@ -356,6 +356,9 @@ int main(int, char**)
 					case SDL_SCANCODE_L:
 						gCamera.ProcessMouseMovement(offset, 0);
 						break;
+					case SDL_SCANCODE_SPACE:
+						gCamera.mode = gCamera.mode == CCamera::Mode::FPS ? CCamera::Mode::FLY : CCamera::Mode::FPS;
+						break;
 					default:
 						break;
 #undef offset
