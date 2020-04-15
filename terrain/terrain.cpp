@@ -22,9 +22,113 @@
 using namespace glm;
 
 CCamera gCamera;
+SDL_Window* window;
 
+namespace
+{
+	enum class Face
+	{
+		right, //px
+		top, //py
+		back, //pz
+		left, //nx
+		botoom, //ny
+		front  //nz
+	};
 
-/*
+	struct Quad
+	{
+		vec3 p1, p2, p3, p4;
+		vec3 color;
+		Quad(vec3 p1, vec3 p2, vec3 p3, vec3 p4, vec3 color) : p1(p1), p2(p2), p3(p3), p4(p4), color(color) {}
+	};
+
+	static const float radii = 1;
+
+	Quad get_cube_face(Face f)
+	{
+		switch (f)
+		{
+			// White side - BACK
+		case Face::back:
+			return Quad({
+			glm::vec3(radii, -radii, radii),
+			glm::vec3(radii, radii, radii),
+			glm::vec3(-radii, radii, radii),
+			glm::vec3(-radii, -radii, radii),
+			glm::vec3(   1.0,  1.0, 1.0 )
+				});
+
+			// Purple side - RIGHT
+		case Face::right:
+			return Quad({
+				glm::vec3(radii, -radii, -radii),
+				glm::vec3(radii, radii, -radii),
+				glm::vec3(radii, radii, radii),
+				glm::vec3(radii, -radii, radii),
+				glm::vec3(  1.0,  0.0,  1.0 )
+				});
+
+			// Green side - LEFT
+		case Face::left:
+			return Quad({
+			glm::vec3(-radii, -radii, radii),
+			glm::vec3(-radii, radii, radii),
+			glm::vec3(-radii, radii, -radii),
+			glm::vec3(-radii, -radii, -radii),
+			glm::vec3(   0.0,  1.0,  0.0 )
+				});
+
+			// Blue side - TOP
+		case Face::top:
+			return Quad({
+			glm::vec3(radii, radii, radii),
+			glm::vec3(radii, radii, -radii),
+			glm::vec3(-radii, radii, -radii),
+			glm::vec3(-radii, radii, radii),
+			glm::vec3(   0.0,  0.0,  1.0 )
+				});
+
+			// Red side - BOTTOM
+		case Face::botoom:
+			return Quad({
+			glm::vec3(radii, -radii, -radii),
+			glm::vec3(radii, -radii, radii),
+			glm::vec3(-radii, -radii, radii),
+			glm::vec3(-radii, -radii, -radii),
+			glm::vec3(   1.0,  0.0,  0.0 )
+				});
+		case Face::front:
+			return Quad({
+			 glm::vec3(radii, -radii, -radii),      // P1 is red
+			 glm::vec3(radii, radii, -radii),      // P2 is green
+			 glm::vec3(-radii, radii, -radii),      // P3 is blue
+			 glm::vec3(-radii, -radii, -radii),      // P4 is 
+			 glm::vec3(   0.0,  1.0, 1.0 )
+				});
+		default:
+			assert(0);
+			break;
+		}
+	}
+
+	void render_quad(const Quad& quad)
+	{
+		glBegin(GL_POLYGON);
+		auto& q = quad;
+		auto& c = quad.color;
+	 
+		glColor3f(c.r, c.g, c.b);
+		glVertex3f(q.p1.x, q.p1.y, q.p1.z );      // P1 is red
+		glVertex3f(q.p2.x, q.p2.y, q.p2.z );      // P2 is red
+		glVertex3f(q.p3.x, q.p3.y, q.p3.z );      // P3 is red
+		glVertex3f(q.p4.x, q.p4.y, q.p4.z );      // P4 is red
+	 
+		glEnd();
+
+	}
+}
+
 class CRender : public IQuadTreeRender {
 public:
 	CRender()
@@ -32,11 +136,14 @@ public:
 
 	}
   void draw_plane(double ox, double oy, double size, color3 color) override {
-		m_Plane->moveTo(Vec3(ox, 0, oy));
-		m_Plane->scale(Vec3(size, size, size));
+		glTranslatef(ox, 0, oy);
+		glScalef(size, size, size);
+		render_quad(get_cube_face(Face::botoom));
+		SDL_GL_SwapWindow(window);
 
+		//m_Plane->moveTo(glm::vec3(ox, 0, oy));
+		//m_Plane->scale(glm::vec3(size, size, size));
   }
-	std::shared_ptr<Object> m_Plane;
 };
 
 class TreeRender : public ITreeVisitorCallback {
@@ -53,6 +160,7 @@ public:
   IQuadTreeRender *render = nullptr;
 };
 
+/*
 class TreeObject : public Object
 {
 	virtual void draw(void* camera) final
@@ -62,91 +170,6 @@ class TreeObject : public Object
 };
 */
 
-enum class Face
-{
-	right, //px
-	top, //py
-	back, //pz
-	left, //nx
-	botoom, //ny
-	front  //nz
-};
-
-struct Quad
-{
-	vec3 p1, p2, p3, p4;
-	vec3 color;
-	Quad(vec3 p1, vec3 p2, vec3 p3, vec3 p4, vec3 color) : p1(p1), p2(p2), p3(p3), p4(p4), color(color) {}
-};
-
-static const float radii = 2;
-
-Quad get_cube_face(Face f)
-{
-	switch (f)
-	{
-		// White side - BACK
-	case Face::back:
-		return Quad({
-		glm::vec3(radii, -radii, radii),
-		glm::vec3(radii, radii, radii),
-		glm::vec3(-radii, radii, radii),
-		glm::vec3(-radii, -radii, radii),
-		glm::vec3(   1.0,  1.0, 1.0 )
-			});
-
-		// Purple side - RIGHT
-	case Face::right:
-		return Quad({
-			glm::vec3(radii, -radii, -radii),
-			glm::vec3(radii, radii, -radii),
-			glm::vec3(radii, radii, radii),
-			glm::vec3(radii, -radii, radii),
-			glm::vec3(  1.0,  0.0,  1.0 )
-			});
-
-		// Green side - LEFT
-	case Face::left:
-		return Quad({
-		glm::vec3(-radii, -radii, radii),
-		glm::vec3(-radii, radii, radii),
-		glm::vec3(-radii, radii, -radii),
-		glm::vec3(-radii, -radii, -radii),
-		glm::vec3(   0.0,  1.0,  0.0 )
-			});
-
-		// Blue side - TOP
-	case Face::top:
-		return Quad({
-		glm::vec3(radii, radii, radii),
-		glm::vec3(radii, radii, -radii),
-		glm::vec3(-radii, radii, -radii),
-		glm::vec3(-radii, radii, radii),
-		glm::vec3(   0.0,  0.0,  1.0 )
-			});
-
-		// Red side - BOTTOM
-	case Face::botoom:
-		return Quad({
-		glm::vec3(radii, -radii, -radii),
-		glm::vec3(radii, -radii, radii),
-		glm::vec3(-radii, -radii, radii),
-		glm::vec3(-radii, -radii, -radii),
-		glm::vec3(   1.0,  0.0,  0.0 )
-			});
-	case Face::front:
-		return Quad({
-		 glm::vec3(radii, -radii, -radii),      // P1 is red
-		 glm::vec3(radii, radii, -radii),      // P2 is green
-		 glm::vec3(-radii, radii, -radii),      // P3 is blue
-		 glm::vec3(-radii, -radii, -radii),      // P4 is 
-		 glm::vec3(   0.0,  1.0, 1.0 )
-			});
-	default:
-		assert(0);
-		break;
-	}
-}
 
 int winW = 1280;
 int winH = 720;
@@ -167,21 +190,6 @@ void glInit()
 float rotate_x = 0;
 float rotate_y = 0;
 
-void render_quad(const Quad& quad)
-{
-  glBegin(GL_POLYGON);
-	auto& q = quad;
-	auto& c = quad.color;
- 
-	glColor3f(c.r, c.g, c.b);
-	glVertex3f(q.p1.x, q.p1.y, q.p1.z );      // P1 is red
-	glVertex3f(q.p2.x, q.p2.y, q.p2.z );      // P2 is red
-	glVertex3f(q.p3.x, q.p3.y, q.p3.z );      // P3 is red
-	glVertex3f(q.p4.x, q.p4.y, q.p4.z );      // P4 is red
- 
-  glEnd();
-
-}
 void display()
 {
 	rotate_x += 0.5;
@@ -199,12 +207,19 @@ void display()
 		up.x, up.y, up.z
 	);
 
+	QuadTree quadTree = QuadTree(8, 2, 0, 0, color3(1, 0, 0));
+	CRender render;
+	TreeRender treeRender = TreeRender(&render);
+	quadTree.split(0.5, 0.5, 1.5);
+	quadTree.visit(&treeRender, 0, 0, 0);
+
   // Other Transformations
   // glTranslatef( 0.1, 0.0, 0.0 );      // Not included
   // glRotatef( 180, 0.0, 1.0, 0.0 );    // Not included
 
   // Rotate when user changes rotate_x and rotate_y
   //glRotatef( rotate_x, 1.0, 0.0, 0.0 );
+#if 0
   glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 
   // Other Transformations
@@ -227,6 +242,7 @@ void display()
  
   // Red side - BOTTOM
 	render_quad(get_cube_face(Face::botoom));
+#endif
 }
 #undef main
 
@@ -249,7 +265,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | /*SDL_WINDOW_RESIZABLE |*/ SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, winW, winH, window_flags);
+    window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, winW, winH, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -327,6 +343,12 @@ int main(int, char**)
 				{
 					switch (key)
 					{
+					case SDL_SCANCODE_F1:
+						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+						break;
+					case SDL_SCANCODE_F2:
+						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						break;
 					case SDL_SCANCODE_W:
 						gCamera.ProcessKeyboard(Movement::FORWARD, SDL_GetTicks());
 						break;
@@ -339,7 +361,7 @@ int main(int, char**)
 					case SDL_SCANCODE_D:
 						gCamera.ProcessKeyboard(Movement::RIGHT, SDL_GetTicks());
 						break;
-#define offset 2
+#define offset 0.5
 					case SDL_SCANCODE_UP:
 					case SDL_SCANCODE_K:
 						gCamera.ProcessMouseMovement(0, offset);
@@ -423,7 +445,7 @@ int main(int, char**)
 
         //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window);
+        //SDL_GL_SwapWindow(window);
     }
 
     // Cleanup

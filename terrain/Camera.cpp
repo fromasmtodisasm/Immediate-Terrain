@@ -60,7 +60,7 @@ void CCamera::setRotation(glm::vec3 ang)
 void CCamera::ProcessKeyboard(Movement direction, float deltaTime)
 {
   //float velocity = this->MovementSpeed * deltaTime;
-  float velocity = this->MovementSpeed * 0.02;
+  float velocity = this->MovementSpeed * 0.002;
   if (direction == FORWARD)
     this->transform.position += glm::vec3(this->Front.x, mode == Mode::FPS ? 0 : this->Front.y, this->Front.z) * velocity;
   if (direction == BACKWARD)
