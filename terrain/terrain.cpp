@@ -13,12 +13,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
-#include <QuadTree.h>
 #include <gl/GL.h>
 #include <gl/GLU.h>
-#include <glm/glm.hpp>
 
+#include <QuadTree.h>
+#include <Camera.h>
+#include <set>
 using namespace glm;
+
+CCamera gCamera;
 
 
 /*
@@ -159,6 +162,7 @@ void glInit()
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	gCamera.updateCameraVectors();
 }
 float rotate_x = 0;
 float rotate_y = 0;
@@ -185,7 +189,15 @@ void display()
   // Reset transformations
 	glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-	gluLookAt(-5, 15, -10, 0, 0, 0, 0, 1, 0);
+	auto pos = gCamera.getPosition();
+	auto point = pos + glm::normalize(gCamera.Front);
+	auto up = gCamera.Up;
+	gluLookAt(
+		pos.x, pos.y, pos.z,
+		/*0,0,0,*/
+		point.x, point.y, point.z,
+		up.x, up.y, up.z
+	);
 
   // Other Transformations
   // glTranslatef( 0.1, 0.0, 0.0 );      // Not included
@@ -281,6 +293,7 @@ int main(int, char**)
 
     // Main loop
     bool done = false;
+		std::set<int> keycodes;
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -294,7 +307,56 @@ int main(int, char**)
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
+						switch (event.type)
+						{
+						case SDL_KEYDOWN:
+						{
+							keycodes.insert(event.key.keysym.scancode);
+							break;
+						}
+						case SDL_KEYUP:
+						{
+							keycodes.erase(event.key.keysym.scancode);
+							break;
+						}
+						default:
+							break;
+						}
         }
+				for (auto key : keycodes)
+				{
+					switch (key)
+					{
+					case SDL_SCANCODE_W:
+						gCamera.ProcessKeyboard(Movement::FORWARD, SDL_GetTicks());
+						break;
+					case SDL_SCANCODE_S:
+						gCamera.ProcessKeyboard(Movement::BACKWARD, SDL_GetTicks());
+						break;
+					case SDL_SCANCODE_A:
+						gCamera.ProcessKeyboard(Movement::LEFT, SDL_GetTicks());
+						break;
+					case SDL_SCANCODE_D:
+						gCamera.ProcessKeyboard(Movement::RIGHT, SDL_GetTicks());
+						break;
+#define offset 2
+					case SDL_SCANCODE_UP:
+						gCamera.ProcessMouseMovement(0, offset);
+						break;
+					case SDL_SCANCODE_DOWN:
+						gCamera.ProcessMouseMovement(0, -offset);
+						break;
+					case SDL_SCANCODE_LEFT:
+						gCamera.ProcessMouseMovement(-offset, 0);
+						break;
+					case SDL_SCANCODE_RIGHT:
+						gCamera.ProcessMouseMovement(offset, 0);
+						break;
+					default:
+						break;
+#undef offset
+					}
+				}
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL2_NewFrame();
@@ -317,6 +379,7 @@ int main(int, char**)
             ImGui::Checkbox("Another Window", &show_another_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+						ImGui::SliderFloat3("cam_front", &gCamera.Front[0], -1.0, 1.0);
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
