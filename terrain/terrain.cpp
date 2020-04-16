@@ -74,7 +74,7 @@ namespace
 			o = { x, size, y };
 			break;
 		case Face::botoom:
-			o = { -x, size, -y };
+			o = { -x, -size, -y };
 			break;
 		case Face::front:
 			o = { x, y, size };
@@ -93,58 +93,58 @@ namespace
 			// White side - BACK
 		case Face::back:
 			return Quad({
-			glm::vec3(size, -size, size),
-			glm::vec3(size, size, size),
-			glm::vec3(-size, size, size),
-			glm::vec3(-size, -size, size),
+			glm::vec3(size, -size, 0),
+			glm::vec3(size, size, 0),
+			glm::vec3(-size, size, 0),
+			glm::vec3(-size, -size, 0),
 			glm::vec3(   1.0,  1.0, 1.0 )
 				});
 
 			// Purple side - RIGHT
 		case Face::right:
 			return Quad({
-				glm::vec3(size, -size, -size),
-				glm::vec3(size, size, -size),
-				glm::vec3(size, size, size),
-				glm::vec3(size, -size, size),
+				glm::vec3(0, -size, -size),
+				glm::vec3(0, size, -size),
+				glm::vec3(0, size, size),
+				glm::vec3(0, -size, size),
 				glm::vec3(  1.0,  0.0,  1.0 )
 				});
 
 			// Green side - LEFT
 		case Face::left:
 			return Quad({
-			glm::vec3(-size, -size, size),
-			glm::vec3(-size, size, size),
-			glm::vec3(-size, size, -size),
-			glm::vec3(-size, -size, -size),
+			glm::vec3(0, -size, size),
+			glm::vec3(0, size, size),
+			glm::vec3(0, size, -size),
+			glm::vec3(0, -size, -size),
 			glm::vec3(   0.0,  1.0,  0.0 )
 				});
 
 			// Blue side - TOP
 		case Face::top:
 			return Quad({
-			glm::vec3(size, size, size),
-			glm::vec3(size, size, -size),
-			glm::vec3(-size, size, -size),
-			glm::vec3(-size, size, size),
+			glm::vec3(size, 0, size),
+			glm::vec3(size, 0, -size),
+			glm::vec3(-size, 0, -size),
+			glm::vec3(-size, 0, size),
 			glm::vec3(   0.0,  0.0,  1.0 )
 				});
 
 			// Red side - BOTTOM
 		case Face::botoom:
 			return Quad({
-			glm::vec3(size, -size, -size),
-			glm::vec3(size, -size, size),
-			glm::vec3(-size, -size, size),
-			glm::vec3(-size, -size, -size),
+			glm::vec3(size, 0, -size),
+			glm::vec3(size, 0, size),
+			glm::vec3(-size, 0, size),
+			glm::vec3(-size, 0, -size),
 			glm::vec3(   1.0,  0.0,  0.0 )
 				});
 		case Face::front:
 			return Quad({
-			 glm::vec3(size, -size, -size),      // P1 is red
-			 glm::vec3(size, size, -size),      // P2 is green
-			 glm::vec3(-size, size, -size),      // P3 is blue
-			 glm::vec3(-size, -size, -size),      // P4 is 
+			 glm::vec3(size, -size, 0),      // P1 is red
+			 glm::vec3(size, size, 0),      // P2 is green
+			 glm::vec3(-size, size, 0),      // P3 is blue
+			 glm::vec3(-size, -size, 0),      // P4 is 
 			 glm::vec3(   0.0,  1.0, 1.0 )
 				});
 		default:
@@ -178,12 +178,12 @@ public:
   void draw_plane(double ox, double oy, double size, color3 color) override {
 		//glTranslatef(ox, 0, oy);
 		//glScalef(size, size, size);
-		auto q = get_cube_face(Face::botoom, 0.5 * size, vec2(ox, oy));
+		auto q = get_cube_face(m_CurrentFace, 0.5 * size, vec2(ox, oy));
 		q.color.r = color.r;
 		q.color.g = color.g;
 		q.color.b = color.b;
 
-		vec3 origin = get_offset(m_CurrentFace, vec2(ox,oy), size);
+		vec3 origin = get_offset(m_CurrentFace, vec2(ox,oy), m_CurrentRadius);
 		q.p1 += origin;
 		q.p2 += origin;
 		q.p3 += origin;
@@ -192,6 +192,7 @@ public:
 		render_quad(q);
   }
 	Face m_CurrentFace = Face::botoom;
+	float m_CurrentRadius = 1;
 };
 
 class TreeRender : public ITreeVisitorCallback {
@@ -273,11 +274,16 @@ void display()
 
 	QuadTree quadTree = QuadTree(8, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
 	CRender render;
-	render.m_CurrentFace;
 	TreeRender treeRender = TreeRender(&render);
 	quadTree.split(::point.x, ::point.y, K);
-	//quadTree.split(point.x, point.y, K);
-	quadTree.visit(&treeRender, 0, 0, 0);
+
+	/*render.m_CurrentFace = Face::left;
+	quadTree.visit(&treeRender, 0, 0, 0);*/
+	for (int i = 0; i < 6; i++)
+	{
+		render.m_CurrentFace = static_cast<Face>(i);
+		quadTree.visit(&treeRender, 0, 0, 0);
+	}
 #if 0
   glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 
