@@ -26,6 +26,11 @@ SDL_Window* window;
 SDL_GLContext gl_context;
 ImGuiIO io;
 
+float K = 1.5; // split factor
+vec2 point = vec2(0.25f, 0.25f);
+vec2 quad_origin = vec2(0, 0);
+float quad_size = 2.f;
+
 namespace
 {
 	enum class Face
@@ -121,11 +126,10 @@ namespace
 		auto& c = quad.color;
 	 
 		glColor3f(c.r, c.g, c.b);
-		glVertex3f(q.p1.x, q.p1.y, q.p1.z );      // P1 is red
-		glVertex3f(q.p2.x, q.p2.y, q.p2.z );      // P2 is red
-		glVertex3f(q.p3.x, q.p3.y, q.p3.z );      // P3 is red
-		glVertex3f(q.p4.x, q.p4.y, q.p4.z );      // P4 is red
-	 
+		glVertex3f(q.p1.x, 0.f, q.p1.z );      // P1 is red
+		glVertex3f(q.p2.x, 0.f, q.p2.z );      // P2 is red
+		glVertex3f(q.p3.x, 0.f, q.p3.z );      // P3 is red
+		glVertex3f(q.p4.x, 0.f, q.p4.z );      // P4 is red	 
 		glEnd();
 
 	}
@@ -140,7 +144,18 @@ public:
   void draw_plane(double ox, double oy, double size, color3 color) override {
 		//glTranslatef(ox, 0, oy);
 		//glScalef(size, size, size);
-		render_quad(get_cube_face(Face::botoom, 0.5*size));
+		auto q = get_cube_face(Face::botoom, 0.5 * size);
+		q.color.r = color.r;
+		q.color.g = color.g;
+		q.color.b = color.b;
+
+		vec3 origin = vec3(ox, 0, oy);
+		q.p1 += origin;
+		q.p2 += origin;
+		q.p3 += origin;
+		q.p4 += origin;
+
+		render_quad(q);
   }
 };
 
@@ -188,7 +203,7 @@ void glInit()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluPerspective(45, (GLfloat)winW / (GLfloat)winH, 0.1, 100.0);
+	gluPerspective(gCamera.FOV, (GLfloat)winW / (GLfloat)winH, 0.1, 100.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -199,6 +214,7 @@ float rotate_y = 0;
 
 void display()
 {
+	glInit();
 	rotate_x += 0.5;
 	rotate_y += 0.5;
   // Reset transformations
@@ -214,10 +230,11 @@ void display()
 		up.x, up.y, up.z
 	);
 
-	QuadTree quadTree = QuadTree(8, 2, 0, 0, color3(1, 1, 0));
+	QuadTree quadTree = QuadTree(8, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
 	CRender render;
 	TreeRender treeRender = TreeRender(&render);
-	quadTree.split(0.5, 0.5, 1.5);
+	quadTree.split(::point.x, ::point.y, K);
+	//quadTree.split(point.x, point.y, K);
 	quadTree.visit(&treeRender, 0, 0, 0);
 #if 0
   glRotatef( rotate_y, 0.0, 1.0, 0.0 );
@@ -425,8 +442,9 @@ int main(int, char**)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-						ImGui::SliderFloat3("cam_front", &gCamera.Front[0], -1.0, 1.0);
+            ImGui::SliderFloat("Split facotr", &K, 1.f, 3.f);            // Edit 1 float using a slider from 0.0f to 1.0f
+						ImGui::SliderFloat("FOV", &gCamera.FOV, 30.f, 150.f);
+						ImGui::SliderFloat2("point", &point[0], 0.f, 1.f);
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
