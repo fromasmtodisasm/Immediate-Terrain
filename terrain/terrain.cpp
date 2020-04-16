@@ -116,7 +116,7 @@ namespace
 
 	void render_quad(const Quad& quad)
 	{
-		glBegin(GL_POLYGON);
+		glBegin(GL_QUADS);
 		auto& q = quad;
 		auto& c = quad.color;
 	 
@@ -141,10 +141,6 @@ public:
 		glTranslatef(ox, 0, oy);
 		glScalef(size, size, size);
 		render_quad(get_cube_face(Face::botoom));
-		//SDL_GL_SwapWindow(window);
-
-		//m_Plane->moveTo(glm::vec3(ox, 0, oy));
-		//m_Plane->scale(glm::vec3(size, size, size));
   }
 };
 
@@ -172,6 +168,15 @@ class TreeObject : public Object
 };
 */
 
+void draw_grid(int x_steps, int y_steps, float w, float h)
+{
+	for (int x = 0; x < x_steps; x++)
+	{
+		for (int y = 0; y < y_steps; y++)
+		{
+		}
+	}
+}
 
 int winW = 1280;
 int winH = 720;
@@ -209,7 +214,7 @@ void display()
 		up.x, up.y, up.z
 	);
 
-	QuadTree quadTree = QuadTree(8, 2, 0, 0, color3(1, 0, 0));
+	QuadTree quadTree = QuadTree(8, 2, 0, 0, color3(1, 1, 0));
 	CRender render;
 	TreeRender treeRender = TreeRender(&render);
 	quadTree.split(0.5, 0.5, 1.5);
