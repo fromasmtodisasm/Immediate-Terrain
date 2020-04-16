@@ -32,6 +32,7 @@ vec2 quad_origin = vec2(0, 0);
 float quad_size = 2.f;
 float speed_factor = 0.1;
 float POINT_SPEED = 0.001;
+int DEPTH = 16;
 
 namespace
 {
@@ -184,10 +185,10 @@ public:
 		q.color.b = color.b;
 
 		vec3 origin = get_offset(m_CurrentFace, vec2(ox,oy), m_CurrentRadius);
-		q.p1 += origin;
-		q.p2 += origin;
-		q.p3 += origin;
-		q.p4 += origin;
+		q.p1 = glm::normalize(q.p1 += origin)*m_CurrentRadius;;
+		q.p2 = glm::normalize(q.p2 += origin)*m_CurrentRadius;;
+		q.p3 = glm::normalize(q.p3 += origin)*m_CurrentRadius;;
+		q.p4 = glm::normalize(q.p4 += origin)*m_CurrentRadius;;
 
 		render_quad(q);
   }
@@ -272,7 +273,7 @@ void display()
 		up.x, up.y, up.z
 	);
 
-	QuadTree quadTree = QuadTree(8, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
+	QuadTree quadTree = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
 	CRender render;
 	TreeRender treeRender = TreeRender(&render);
 	quadTree.split(::point.x, ::point.y, K);
@@ -491,6 +492,7 @@ int main(int, char**)
             ImGui::Checkbox("Another Window", &show_another_window);
 
             ImGui::SliderFloat("Split facotr", &K, 1.f, 3.f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderInt("Depth", &DEPTH, 0, 32);            // Edit 1 float using a slider from 0.0f to 1.0f
 						ImGui::SliderFloat("FOV", &gCamera.FOV, 30.f, 150.f);
 						ImGui::SliderFloat("point speed", &POINT_SPEED, 0.001f, 0.01f);
 						ImGui::SliderFloat2("point", &point[0], 0.f, 1.f);
