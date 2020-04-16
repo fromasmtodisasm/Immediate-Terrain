@@ -23,6 +23,8 @@ using namespace glm;
 
 CCamera gCamera;
 SDL_Window* window;
+SDL_GLContext gl_context;
+ImGuiIO io;
 
 namespace
 {
@@ -212,13 +214,6 @@ void display()
 	TreeRender treeRender = TreeRender(&render);
 	quadTree.split(0.5, 0.5, 1.5);
 	quadTree.visit(&treeRender, 0, 0, 0);
-
-  // Other Transformations
-  // glTranslatef( 0.1, 0.0, 0.0 );      // Not included
-  // glRotatef( 180, 0.0, 1.0, 0.0 );    // Not included
-
-  // Rotate when user changes rotate_x and rotate_y
-  //glRotatef( rotate_x, 1.0, 0.0, 0.0 );
 #if 0
   glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 
@@ -246,8 +241,7 @@ void display()
 }
 #undef main
 
-// Main code
-int main(int, char**)
+bool Init()
 {
     // Setup SDL
     // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
@@ -255,7 +249,7 @@ int main(int, char**)
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
         printf("Error: %s\n", SDL_GetError());
-        return -1;
+        return false;
     }
 
     // Setup window
@@ -273,7 +267,7 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -301,7 +295,26 @@ int main(int, char**)
     //IM_ASSERT(font != NULL);
 
 		glInit();
+		return true;
 
+}
+
+void Cleanup()
+{
+    // Cleanup
+    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    SDL_GL_DeleteContext(gl_context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+// Main code
+int main(int, char**)
+{
+	if (Init())
+	{
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -447,17 +460,10 @@ int main(int, char**)
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);
     }
+		Cleanup();
 
-    // Cleanup
-    ImGui_ImplOpenGL2_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    return 0;
+	}
+	return 0;
 }
 
 
