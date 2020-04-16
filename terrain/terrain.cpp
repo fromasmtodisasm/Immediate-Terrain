@@ -47,7 +47,7 @@ namespace
 
 	static const float radii = 1;
 
-	Quad get_cube_face(Face f)
+	Quad get_cube_face(Face f, float radii)
 	{
 		switch (f)
 		{
@@ -138,9 +138,9 @@ public:
 
 	}
   void draw_plane(double ox, double oy, double size, color3 color) override {
-		glTranslatef(ox, 0, oy);
-		glScalef(size, size, size);
-		render_quad(get_cube_face(Face::botoom));
+		//glTranslatef(ox, 0, oy);
+		//glScalef(size, size, size);
+		render_quad(get_cube_face(Face::botoom, 0.5*size));
   }
 };
 
