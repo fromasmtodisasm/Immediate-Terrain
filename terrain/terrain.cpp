@@ -369,6 +369,81 @@ void Cleanup()
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
+
+bool ProcessEvents(std::set<int> &keycodes)
+{
+	bool done = false;
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+				ImGui_ImplSDL2_ProcessEvent(&event);
+				if (event.type == SDL_QUIT)
+						done = true;
+				switch (event.type)
+				{
+				case SDL_KEYDOWN:
+				{
+					keycodes.insert(event.key.keysym.scancode);
+					break;
+				}
+				case SDL_KEYUP:
+				{
+					keycodes.erase(event.key.keysym.scancode);
+					break;
+				}
+				default:
+					break;
+				}
+		}
+		for (auto key : keycodes)
+		{
+			switch (key)
+			{
+			case SDL_SCANCODE_F1:
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				break;
+			case SDL_SCANCODE_F2:
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				break;
+			case SDL_SCANCODE_W:
+				gCamera.ProcessKeyboard(Movement::FORWARD, SDL_GetTicks());
+				break;
+			case SDL_SCANCODE_S:
+				gCamera.ProcessKeyboard(Movement::BACKWARD, SDL_GetTicks());
+				break;
+			case SDL_SCANCODE_A:
+				gCamera.ProcessKeyboard(Movement::LEFT, SDL_GetTicks());
+				break;
+			case SDL_SCANCODE_D:
+				gCamera.ProcessKeyboard(Movement::RIGHT, SDL_GetTicks());
+				break;
+#define offset 1 
+			case SDL_SCANCODE_UP:
+			case SDL_SCANCODE_K:
+				gCamera.ProcessMouseMovement(0, offset);
+				break;
+			case SDL_SCANCODE_DOWN:
+			case SDL_SCANCODE_J:
+				gCamera.ProcessMouseMovement(0, -offset);
+				break;
+			case SDL_SCANCODE_LEFT:
+			case SDL_SCANCODE_H:
+				gCamera.ProcessMouseMovement(-offset, 0);
+				break;
+			case SDL_SCANCODE_RIGHT:
+			case SDL_SCANCODE_L:
+				gCamera.ProcessMouseMovement(offset, 0);
+				break;
+			case SDL_SCANCODE_SPACE:
+				gCamera.mode = gCamera.mode == CCamera::Mode::FPS ? CCamera::Mode::FLY : CCamera::Mode::FPS;
+				break;
+			default:
+				break;
+#undef offset
+			}
+		}
+		return done;
+}
 // Main code
 int main(int, char**)
 {
@@ -380,8 +455,8 @@ int main(int, char**)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
-    bool done = false;
 		std::set<int> keycodes;
+    bool done = false;
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -389,75 +464,8 @@ int main(int, char**)
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-                done = true;
-						switch (event.type)
-						{
-						case SDL_KEYDOWN:
-						{
-							keycodes.insert(event.key.keysym.scancode);
-							break;
-						}
-						case SDL_KEYUP:
-						{
-							keycodes.erase(event.key.keysym.scancode);
-							break;
-						}
-						default:
-							break;
-						}
-        }
-				for (auto key : keycodes)
-				{
-					switch (key)
-					{
-					case SDL_SCANCODE_F1:
-						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-						break;
-					case SDL_SCANCODE_F2:
-						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-						break;
-					case SDL_SCANCODE_W:
-						gCamera.ProcessKeyboard(Movement::FORWARD, SDL_GetTicks());
-						break;
-					case SDL_SCANCODE_S:
-						gCamera.ProcessKeyboard(Movement::BACKWARD, SDL_GetTicks());
-						break;
-					case SDL_SCANCODE_A:
-						gCamera.ProcessKeyboard(Movement::LEFT, SDL_GetTicks());
-						break;
-					case SDL_SCANCODE_D:
-						gCamera.ProcessKeyboard(Movement::RIGHT, SDL_GetTicks());
-						break;
-#define offset 1 
-					case SDL_SCANCODE_UP:
-					case SDL_SCANCODE_K:
-						gCamera.ProcessMouseMovement(0, offset);
-						break;
-					case SDL_SCANCODE_DOWN:
-					case SDL_SCANCODE_J:
-						gCamera.ProcessMouseMovement(0, -offset);
-						break;
-					case SDL_SCANCODE_LEFT:
-					case SDL_SCANCODE_H:
-						gCamera.ProcessMouseMovement(-offset, 0);
-						break;
-					case SDL_SCANCODE_RIGHT:
-					case SDL_SCANCODE_L:
-						gCamera.ProcessMouseMovement(offset, 0);
-						break;
-					case SDL_SCANCODE_SPACE:
-						gCamera.mode = gCamera.mode == CCamera::Mode::FPS ? CCamera::Mode::FLY : CCamera::Mode::FPS;
-						break;
-					default:
-						break;
-#undef offset
-					}
-				}
+
+			done = ProcessEvents(keycodes);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL2_NewFrame();
