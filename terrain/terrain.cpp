@@ -14,7 +14,6 @@
 #include <SDL2/SDL_opengl.h>
 
 #include <gl/GL.h>
-#include <gl/GLU.h>
 
 #include <QuadTree.h>
 #include <Camera.h>
@@ -236,15 +235,11 @@ int winH = 720;
 void glInit()
 {
 	glEnable(GL_DEPTH_TEST);
-
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	gluPerspective(gCamera.FOV, (GLfloat)winW / (GLfloat)winH, 0.1, 100.0);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 	gCamera.updateCameraVectors();
+	glLoadMatrixf(&gCamera.getProjectionMatrix()[0][0]);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&gCamera.getViewMatrix()[0][0]);
 }
 float rotate_x = 0;
 float rotate_y = 0;
@@ -261,17 +256,9 @@ void display()
 	rotate_x += 0.5;
 	rotate_y += 0.5;
   // Reset transformations
-	glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
 	auto pos = gCamera.getPosition();
 	auto point = pos + glm::normalize(gCamera.Front);
 	auto up = gCamera.Up;
-	gluLookAt(
-		pos.x, pos.y, pos.z,
-		/*0,0,0,*/
-		point.x, point.y, point.z,
-		up.x, up.y, up.z
-	);
 
 	QuadTree quadTree = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
 	CRender render;
