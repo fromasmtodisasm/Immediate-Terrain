@@ -22,8 +22,8 @@ enum Movement {
 };
 
 // Default camera values
-const float YAW = 90.0f;
-const float PITCH = 0.0f;
+const float YAW = glm::radians(90.f);
+const float PITCH = glm::radians(0.f);
 const float SPEED = 0.1f;
 const float SENSITIVTY = 0.25f;
 const float ZOOM = 45.0f;

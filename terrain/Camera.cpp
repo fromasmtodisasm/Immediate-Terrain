@@ -74,8 +74,8 @@ void CCamera::ProcessKeyboard(Movement direction, float deltaTime)
 // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
 void CCamera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 {
-  this->transform.rotation.y += xoffset;
-  this->transform.rotation.x += yoffset;
+  this->transform.rotation.y += glm::radians(xoffset);
+  this->transform.rotation.x += glm::radians(yoffset);
 
   // Make sure that when pitch is out of bounds, screen doesn't get flipped
   if (constrainPitch)
@@ -106,9 +106,14 @@ void CCamera::updateCameraVectors()
 {
   // Calculate the new Front vector
   glm::vec3 front;
-  front.x = cos(glm::radians(this->transform.rotation.y)) * cos(glm::radians(this->transform.rotation.x));
+  /*front.x = cos(glm::radians(this->transform.rotation.y)) * cos(glm::radians(this->transform.rotation.x));
   front.y = sin(glm::radians(this->transform.rotation.x));
-  front.z = sin(glm::radians(this->transform.rotation.y)) * cos(glm::radians(this->transform.rotation.x));
+  front.z = sin(glm::radians(this->transform.rotation.y)) * cos(glm::radians(this->transform.rotation.x));*/
+
+  front.x = cos(this->transform.rotation.y) * cos(this->transform.rotation.x);
+  front.y = sin(this->transform.rotation.x);
+  front.z = sin(this->transform.rotation.y) * cos(this->transform.rotation.x);
+
   this->Front = glm::normalize(front);
   // Also re-calculate the Right and Up vector
   this->Right = glm::normalize(glm::cross(this->Front, this->WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.

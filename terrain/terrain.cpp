@@ -262,6 +262,7 @@ void display()
 
 	QuadTree quadTree = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
 	CRender render;
+	render.m_CurrentRadius = 0.5 * quad_size;
 	TreeRender treeRender = TreeRender(&render);
 	quadTree.split(::point.x, ::point.y, K);
 
@@ -432,7 +433,7 @@ int main(int, char**)
 					case SDL_SCANCODE_D:
 						gCamera.ProcessKeyboard(Movement::RIGHT, SDL_GetTicks());
 						break;
-#define offset 0.5
+#define offset 1 
 					case SDL_SCANCODE_UP:
 					case SDL_SCANCODE_K:
 						gCamera.ProcessMouseMovement(0, offset);
@@ -478,8 +479,13 @@ int main(int, char**)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
 
+            ImGui::Text("Camera");
+						ImGui::SliderAngle("Yaw", &gCamera.transform.rotation.x);
+						ImGui::SliderAngle("Pitch", &gCamera.transform.rotation.y);
+						ImGui::Separator();
             ImGui::SliderFloat("Split facotr", &K, 1.f, 3.f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::SliderInt("Depth", &DEPTH, 0, 32);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderFloat("Radius", &quad_size, 1, 32);            // Edit 1 float using a slider from 0.0f to 1.0f
 						ImGui::SliderFloat("FOV", &gCamera.FOV, 30.f, 150.f);
 						ImGui::SliderFloat("point speed", &POINT_SPEED, 0.001f, 0.01f);
 						ImGui::SliderFloat2("point", &point[0], 0.f, 1.f);
