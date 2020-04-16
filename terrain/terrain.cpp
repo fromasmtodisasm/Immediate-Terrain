@@ -139,7 +139,7 @@ public:
 		glTranslatef(ox, 0, oy);
 		glScalef(size, size, size);
 		render_quad(get_cube_face(Face::botoom));
-		SDL_GL_SwapWindow(window);
+		//SDL_GL_SwapWindow(window);
 
 		//m_Plane->moveTo(glm::vec3(ox, 0, oy));
 		//m_Plane->scale(glm::vec3(size, size, size));
@@ -445,7 +445,7 @@ int main(int, char**)
 
         //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-        //SDL_GL_SwapWindow(window);
+        SDL_GL_SwapWindow(window);
     }
 
     // Cleanup
