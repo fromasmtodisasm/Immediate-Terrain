@@ -480,8 +480,8 @@ int main(int, char**)
             ImGui::Checkbox("Another Window", &show_another_window);
 
             ImGui::Text("Camera");
-						ImGui::SliderAngle("Yaw", &gCamera.transform.rotation.x);
-						ImGui::SliderAngle("Pitch", &gCamera.transform.rotation.y);
+						ImGui::SliderAngle("Pitch", &gCamera.transform.rotation.x);
+						ImGui::SliderAngle("Yaw", &gCamera.transform.rotation.y);
 						ImGui::Separator();
             ImGui::SliderFloat("Split facotr", &K, 1.f, 3.f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::SliderInt("Depth", &DEPTH, 0, 32);            // Edit 1 float using a slider from 0.0f to 1.0f
