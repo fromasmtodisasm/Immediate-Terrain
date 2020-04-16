@@ -30,6 +30,8 @@ float K = 1.5; // split factor
 vec2 point = vec2(0.25f, 0.25f);
 vec2 quad_origin = vec2(0, 0);
 float quad_size = 2.f;
+float speed_factor = 0.1;
+float POINT_SPEED = 0.001;
 
 namespace
 {
@@ -211,6 +213,12 @@ void glInit()
 }
 float rotate_x = 0;
 float rotate_y = 0;
+
+void update()
+{
+	point.x = glm::cos(speed_factor*POINT_SPEED*SDL_GetTicks());
+	point.y = glm::sin(speed_factor*POINT_SPEED*SDL_GetTicks());
+}
 
 void display()
 {
@@ -444,6 +452,7 @@ int main(int, char**)
 
             ImGui::SliderFloat("Split facotr", &K, 1.f, 3.f);            // Edit 1 float using a slider from 0.0f to 1.0f
 						ImGui::SliderFloat("FOV", &gCamera.FOV, 30.f, 150.f);
+						ImGui::SliderFloat("point speed", &POINT_SPEED, 0.001f, 0.01f);
 						ImGui::SliderFloat2("point", &point[0], 0.f, 1.f);
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
@@ -465,6 +474,7 @@ int main(int, char**)
                 show_another_window = false;
             ImGui::End();
         }
+				update();
 
 				//gluLookAt(-5, 15, -10, 0, 0, 0, 0, 1, 0);
 
