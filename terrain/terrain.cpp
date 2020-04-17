@@ -194,6 +194,28 @@ namespace
 		draw_line({ 0, 0, -size }, { 0, 0, size }, {0,0,1});
 		glLineWidth(1);
 	}
+
+	
+// 0 ... 1 output range
+__forceinline glm::vec2 world_coords_to_face_space(const float x,const float y,const float z) {
+    return (glm::vec2(x/z,y/z)+1.0f)*0.5f;
+}
+
+// 0 ... 1 output range
+__forceinline glm::vec2 world_coords_to_face_space(const Face face_type, const float x,const float y,const float z) {
+    switch(face_type) // same as using coords_swizzle & unity_swizzle
+    {
+		case Face::right: return world_coords_to_face_space( y,  z,  glm::abs(x)); // px
+    case Face::top: return world_coords_to_face_space(-x,  z,  glm::abs(y)); // py
+    case Face::left: return world_coords_to_face_space(-y,  z,  glm::abs(x)); // nx
+    case Face::botoom: return world_coords_to_face_space( x,  z,  glm::abs(y)); // ny
+    case Face::back: return world_coords_to_face_space( y, -x,  glm::abs(z)); // pz
+    case Face::front: return world_coords_to_face_space( y,  x,  glm::abs(z)); // nz
+    default: break;
+    };
+    return glm::vec2(0.0);
+}
+
 }
 
 class CRender : public IQuadTreeRender {
@@ -315,14 +337,19 @@ void display()
 	auto point = pos + glm::normalize(gCamera.Front);
 	auto up = gCamera.Up;
 
-	QuadTree quadTree = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
+	std::vector<QuadTree> quadTrees;
 	CRender render;
 	render.m_CurrentRadius = 0.5 * quad_size;
 	TreeRender treeRender = TreeRender(&render);
-	quadTree.split(::point.x, ::point.y, K);
 
-	/*render.m_CurrentFace = Face::left;
-	quadTree.visit(&treeRender, 0, 0, 0);*/
+	for (int i = 0; i < 6; i++)
+	{
+		auto qt = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
+		auto p = world_coords_to_face_space(static_cast<Face>(i), ::point.x, 2, ::point.y);
+		qt.split(p.x, p.y, K);
+		quadTrees.push_back(qt);
+	}
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	draw_grid(20, 20, 20, 20);
 	draw_axes(20);
@@ -330,7 +357,7 @@ void display()
 	for (int i = 0; i < 6; i++)
 	{
 		render.m_CurrentFace = static_cast<Face>(i);
-		quadTree.visit(&treeRender, 0, 0, 0);
+		quadTrees[i].visit(&treeRender, 0, 0, 0);
 	}
 #if 0
   glRotatef( rotate_y, 0.0, 1.0, 0.0 );
