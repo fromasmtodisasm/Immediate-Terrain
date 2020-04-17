@@ -32,6 +32,7 @@ float quad_size = 2.f;
 float speed_factor = 0.1;
 float POINT_SPEED = 0.001;
 int DEPTH = 16;
+bool is_wireframe = false;
 
 namespace
 {
@@ -167,6 +168,32 @@ namespace
 		glEnd();
 
 	}
+
+	void wireframe(bool mode)
+	{
+		int native = mode ? GL_LINE : GL_FILL;
+		glPolygonMode(GL_FRONT_AND_BACK, native);
+	}
+
+	void draw_line(glm::vec3 p1, glm::vec3 p2, glm::vec3 color)
+	{
+		glColor3fv(&color[0]);
+		glBegin(GL_LINES);
+		glVertex3fv(&p1[0]);
+		glVertex3fv(&p2[0]);
+		glEnd();
+
+	}
+
+	void draw_axes(float size)
+	{
+		glLineWidth(4);
+		size = 0.5 * size;
+		draw_line({ 0, -size, 0 }, { 0, size, 0 }, {1,0,0});
+		draw_line({ -size, 0, 0 }, { size, 0, 0 }, {0,1,0});
+		draw_line({ 0, 0, -size }, { 0, 0, size }, {0,0,1});
+		glLineWidth(1);
+	}
 }
 
 class CRender : public IQuadTreeRender {
@@ -196,6 +223,12 @@ public:
 class TreeRender : public ITreeVisitorCallback {
 public:
   TreeRender(IQuadTreeRender *render) : render(render) {}
+  virtual void BeforVisit(QuadTree *qt) {
+		wireframe(is_wireframe);
+	}
+  virtual void AfterVisit(QuadTree *qt) {
+		wireframe(false);
+	}
   virtual void OnLeaf(QuadTree *qt, bool is_last, int level) override {
     render->draw_plane(qt->m_x, qt->m_y, qt->m_size, qt->m_color);
   }
@@ -213,25 +246,6 @@ class TreeObject : public Object
 };
 */
 
-void draw_line(glm::vec3 p1, glm::vec3 p2, glm::vec3 color)
-{
-	glColor3fv(&color[0]);
-	glBegin(GL_LINES);
-	glVertex3fv(&p1[0]);
-	glVertex3fv(&p2[0]);
-	glEnd();
-
-}
-
-void draw_axes(float size)
-{
-	glLineWidth(4);
-	size = 0.5 * size;
-	draw_line({ 0, -size, 0 }, { 0, size, 0 }, {1,0,0});
-	draw_line({ -size, 0, 0 }, { size, 0, 0 }, {0,1,0});
-	draw_line({ 0, 0, -size }, { 0, 0, size }, {0,0,1});
-	glLineWidth(1);
-}
 
 void draw_grid(int x_steps, int y_steps, float w, float h)
 {
@@ -445,10 +459,7 @@ bool ProcessEvents(std::set<int> &keycodes)
 			switch (key)
 			{
 			case SDL_SCANCODE_F1:
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				break;
-			case SDL_SCANCODE_F2:
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				is_wireframe = !is_wireframe;
 				break;
 			case SDL_SCANCODE_W:
 				gCamera.ProcessKeyboard(Movement::FORWARD, SDL_GetTicks());
