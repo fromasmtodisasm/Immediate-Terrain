@@ -345,7 +345,7 @@ void display()
 	for (int i = 0; i < 6; i++)
 	{
 		auto qt = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
-		auto p = world_coords_to_face_space(static_cast<Face>(i), ::point.x, 2, ::point.y);
+		auto p = world_coords_to_face_space(static_cast<Face>(i), ::point.x, 2, ::point.y)*0.5f*quad_size;
 		qt.split(p.x, p.y, K);
 		quadTrees.push_back(qt);
 	}
