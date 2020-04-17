@@ -176,8 +176,6 @@ public:
 
 	}
   void draw_plane(double ox, double oy, double size, color3 color) override {
-		//glTranslatef(ox, 0, oy);
-		//glScalef(size, size, size);
 		auto q = get_cube_face(m_CurrentFace, 0.5 * size, vec2(ox, oy));
 		q.color.r = color.r;
 		q.color.g = color.g;
@@ -198,10 +196,6 @@ public:
 class TreeRender : public ITreeVisitorCallback {
 public:
   TreeRender(IQuadTreeRender *render) : render(render) {}
-  // Inherited via ITreeVisitorCallback
-  virtual void BeforVisit(QuadTree *qt) override {
-
-  }
   virtual void OnLeaf(QuadTree *qt, bool is_last, int level) override {
     render->draw_plane(qt->m_x, qt->m_y, qt->m_size, qt->m_color);
   }
@@ -219,13 +213,60 @@ class TreeObject : public Object
 };
 */
 
+void draw_line(glm::vec3 p1, glm::vec3 p2, glm::vec3 color)
+{
+	glColor3fv(&color[0]);
+	glBegin(GL_LINES);
+	glVertex3fv(&p1[0]);
+	glVertex3fv(&p2[0]);
+	glEnd();
+
+}
+
+void draw_axes(float size)
+{
+	glLineWidth(4);
+	size = 0.5 * size;
+	draw_line({ 0, -size, 0 }, { 0, size, 0 }, {1,0,0});
+	draw_line({ -size, 0, 0 }, { size, 0, 0 }, {0,1,0});
+	draw_line({ 0, 0, -size }, { 0, 0, size }, {0,0,1});
+	glLineWidth(1);
+}
+
 void draw_grid(int x_steps, int y_steps, float w, float h)
 {
-	for (int x = 0; x < x_steps; x++)
+	float y_step_size = h / y_steps;
+	float x_step_size = w / x_steps;
+	glColor3f(0.8f, 0.8f, 0.8f);
+	for (int y = 0; y < y_steps; y++)
 	{
-		for (int y = 0; y < y_steps; y++)
+		glBegin(GL_TRIANGLE_STRIP);
+		/*glVertex3f(-0.5 * w, 0, y * y_step_size - 0.5 * h + y_step_size);
+		glVertex3f(-0.5 * w, 0, y * y_step_size - 0.5 * h);
+		glVertex3f(-0.5 * w + x_step_size, 0, y * y_step_size - 0.5 * h);*/
+		bool need_shift = false;
+		int shift = 0;
+		int x = 0;
+		while (shift <= x_steps || !need_shift)
 		{
+			float vx = 0, vy = 0;
+			if (x % 2 == 0)
+			{
+				vx = -0.5 * w + x_step_size * shift;
+				vy = y * y_step_size - 0.5 * h;
+				need_shift = false;
+			}
+			else
+			{
+				vx = -0.5 * w + x_step_size * shift;
+				vy = y * y_step_size - 0.5 * h + y_step_size;
+				need_shift = !need_shift;
+			}
+			glVertex3f(vx, 0, vy);
+			shift = need_shift ? shift + 1 : shift;
+			x++;
 		}
+		glEnd();
 	}
 }
 
@@ -268,6 +309,10 @@ void display()
 
 	/*render.m_CurrentFace = Face::left;
 	quadTree.visit(&treeRender, 0, 0, 0);*/
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	draw_grid(20, 20, 20, 20);
+	draw_axes(20);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	for (int i = 0; i < 6; i++)
 	{
 		render.m_CurrentFace = static_cast<Face>(i);
@@ -452,7 +497,7 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.2, 0.2, 0.2, 1.00f);
 
     // Main loop
 		std::set<int> keycodes;
