@@ -79,7 +79,7 @@ public:
 
   bool need_split(double x, double y, double ox, double oy, double L,
                   double k) {
-    if (m_depth > 0) {
+    if (m_depth > 3) {
       auto d = std::max(std::min(std::abs(x - ox), std::abs(x - ox - L)),
                         std::min(std::abs(y - oy), std::abs(y - oy - L)));
       return d < k * L;

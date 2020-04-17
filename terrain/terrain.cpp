@@ -28,7 +28,7 @@ ImGuiIO io;
 float K = 1.5; // split factor
 vec2 point = vec2(0.25f, 0.25f);
 vec2 quad_origin = vec2(0, 0);
-float quad_size = 2.f;
+float quad_size = 4.f;
 float speed_factor = 0.1;
 float POINT_SPEED = 0.001;
 int DEPTH = 16;
@@ -323,8 +323,8 @@ float rotate_y = 0;
 
 void update()
 {
-	point.x = glm::cos(speed_factor*POINT_SPEED*SDL_GetTicks());
-	point.y = glm::sin(speed_factor*POINT_SPEED*SDL_GetTicks());
+	point.x = 3*glm::cos(speed_factor*POINT_SPEED*SDL_GetTicks());
+	point.y = 3*glm::sin(speed_factor*POINT_SPEED*SDL_GetTicks());
 }
 
 void display()
@@ -345,7 +345,7 @@ void display()
 	for (int i = 0; i < 6; i++)
 	{
 		auto qt = QuadTree(DEPTH, quad_size, quad_origin.x, quad_origin.y, color3(1, 1, 0));
-		auto p = world_coords_to_face_space(static_cast<Face>(i), ::point.x, 2, ::point.y)*0.5f*quad_size;
+		auto p = 2*render.m_CurrentRadius*(world_coords_to_face_space(static_cast<Face>(i), ::point.x, 2, ::point.y) - 0.5f);
 		qt.split(p.x, p.y, K);
 		quadTrees.push_back(qt);
 	}
